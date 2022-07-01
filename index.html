@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACHIEVEMENT</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0
+    }
+
+    :root {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* background-color: #f60; */
+    }
+
+    input {
+      width: 50%;
+      margin: 20px 0;
+      cursor: pointer;
+      /* -webkit-appearance: none; */
+    }
+
+    input::-webkit-slider-thumb {
+      border: 12px solid red;
+    }
+
+    /* pc */
+    @media screen and (min-width: 1080px) {
+      .container {
+        vertical-align: middle;
+        display: inline-grid;
+        grid-template-columns: repeat(100, 1fr);
+        grid-template-rows: repeat(30, 1fr);
+        gap: 2px;
+        background: #000;
+        outline: 2px solid #000;
+        border-radius: 2px;
+      }
+
+      .box {
+        width: 20px;
+        height: 20px;
+        /* background: #2da44e; */
+        background: #fff;
+      }
+
+      .box.completed {
+        background: #2da44e;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1 id="date"> 2020-06-30 </h1>
+  <input type="range" step="1" min="0" max="9999" value="0">
+  <!-- <div class="container"></div> -->
+  <script>
+    const $ = selector => document.querySelector(selector)
+    const $all = selector => document.querySelectorAll(selector)
+    const $new = tag => document.createElement(tag)
+  </script>
+  <script type="module">
+    import data from './data.json' assert { type: 'json' }
+    const container = $new('div')
+    container.className = `container`
+
+    const completedQuestion = data.map(day => day.problems).flat().map(obj => +obj.index)
+
+    let pointer = 1
+    while (pointer++ < 3001) {
+      const div = document.createElement('div')
+      // const isCompleted = completedQuestion.includes(i)
+      // div.className = `box ${isCompleted ? 'completed' : ''}`
+      div.className = 'box'
+      container.appendChild(div)
+    }
+    document.body.append(container)
+
+
+    const input = $('input');
+    input.max = data.length
+    const date = $('#date')
+    let timer
+
+    const setColor = (day, timeGap = 1000) => {
+      timer = setTimeout(() => {
+        $all(`.container .box`).forEach((ele, index) => {
+          data[day].problems.map(problem => +problem.index).includes(++index) &&
+            (ele.className = `box completed`)
+        })
+        date.innerText = data[day].date
+        input.value = ++day
+        if (day > data.length - 1) return;
+        setColor(day)
+      }, timeGap);
+    }
+    setColor(0)
+
+    // input.addEventListener('change', (val) => {
+    //   console.log('change',val)
+    // })
+
+    input.addEventListener('input', (e, val) => {
+      const curVal = e.target.value
+      // console.log('input',curVal)
+      const splicedData = data.slice(0, curVal)
+      $all(`.container .box`).forEach((ele, index) => {
+        const allIndex = splicedData.length ? splicedData.map(day => day.problems).flat().map(problem => +problem.index) : []
+        allIndex.includes(++index) && (ele.className = `box completed`)
+        ele.className = `box${allIndex.includes(++index) ? ' completed' : ''}`
+      })
+      date.innerText = splicedData.length ? splicedData.at(-1).date : '2020-06-30'
+    })
+
+    input.addEventListener('mousedown', () => {
+      console.log('mousedown')
+      clearTimeout(timer)
+    })
+  </script>
+
+</body>
+
+</html>
