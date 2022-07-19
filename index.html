@@ -66,7 +66,7 @@
 </head>
 
 <body>
-  <h1 id="date"> 2020-06-30 </h1>
+  <h1 id="date"> YYYY-MM-DD </h1>
   <input type="range" step="1" min="0" max="9999" value="0">
   <!-- <div class="container"></div> -->
   <script>
@@ -75,29 +75,31 @@
     const $new = tag => document.createElement(tag)
   </script>
   <script type="module">
+    // [ { date: string, problems: [ { index: string, name: string }, ... ] }, ... ]
     import data from './data.json' assert { type: 'json' }
+
+    // 初始化首日
+    const INIT_DATE = `2020-07-18`
+    const date = $('#date')
+    date.innerText = INIT_DATE
+
+    // 绘制 3000 个盒子
     const container = $new('div')
     container.className = `container`
-
-    const completedQuestion = data.map(day => day.problems).flat().map(obj => +obj.index)
-
     let pointer = 1
     while (pointer++ < 3001) {
       const div = document.createElement('div')
-      // const isCompleted = completedQuestion.includes(i)
-      // div.className = `box ${isCompleted ? 'completed' : ''}`
       div.className = 'box'
       container.appendChild(div)
     }
     document.body.append(container)
 
-
+    // 自动显示每日完成
     const input = $('input');
     input.max = data.length
-    const date = $('#date')
     let timer
 
-    const setColor = (day, timeGap = 1000) => {
+    const setColor = (day = 0, timeGap = 1000) => {
       timer = setTimeout(() => {
         $all(`.container .box`).forEach((ele, index) => {
           data[day].problems.map(problem => +problem.index).includes(++index) &&
@@ -105,34 +107,26 @@
         })
         date.innerText = data[day].date
         input.value = ++day
-        if (day > data.length - 1) return;
+        if (day > data.length - 1) return clearTimeout(timer)
         setColor(day)
       }, timeGap);
     }
-    setColor(0)
+    setColor()
 
-    // input.addEventListener('change', (val) => {
-    //   console.log('change',val)
-    // })
+    // 动画中止
+    input.addEventListener('mousedown', () => clearTimeout(timer))
 
+    // 手动拖拽
     input.addEventListener('input', (e, val) => {
       const curVal = e.target.value
-      // console.log('input',curVal)
       const splicedData = data.slice(0, curVal)
+      date.innerText = splicedData.length ? splicedData.at(-1).date : INIT_DATE
       $all(`.container .box`).forEach((ele, index) => {
         const allIndex = splicedData.length ? splicedData.map(day => day.problems).flat().map(problem => +problem.index) : []
         allIndex.includes(++index) && (ele.className = `box completed`)
         ele.className = `box${allIndex.includes(++index) ? ' completed' : ''}`
       })
-      date.innerText = splicedData.length ? splicedData.at(-1).date : '2020-06-30'
-    })
-
-    input.addEventListener('mousedown', () => {
-      console.log('mousedown')
-      clearTimeout(timer)
     })
   </script>
-
 </body>
-
 </html>
